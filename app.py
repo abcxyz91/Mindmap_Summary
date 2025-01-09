@@ -86,10 +86,10 @@ def home():
             # Summarize by Gemini and generate the mindmap structure
             response = model.generate_content(text)
             # Clean the response by removing markdown code blocks
-            cleaned_response = cleaned_response(response.text)
+            cleaned_json = cleaned_response(response.text)
             
             try:
-                mindmap_data = json.loads(cleaned_response) # Parse the JSON response
+                mindmap_data = json.loads(cleaned_json) # Parse the JSON response
                 return render_template("index.html", mindmap_data=json.dumps(mindmap_data))
             except json.JSONDecodeError:
                 flash("Error: Invalid JSON response")
