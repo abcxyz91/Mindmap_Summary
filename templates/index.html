@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document to Mindmap Converter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .mindmap-container {
+            width: 100%;
+            height: 800px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .node circle {
+            fill: #fff;
+            stroke: #4CAF50;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            font: 12px sans-serif;
+            fill: #333;
+        }
+
+        .link {
+            fill: none;
+            stroke: #999;
+            stroke-width: 1.5px;
+        }
+
+        .central-node circle {
+            fill: #4CAF50;
+        }
+
+        .central-node text {
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Document to Mindmap Converter</h1>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <ul class="flash-messages">
+                {% for message in messages %}
+                <li class="flash-message">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".txt,.pdf,.docx" required>
+            <button type="submit">Generate Mindmap</button>
+        </form>
+
+        <div id="mindmap" class="mindmap-container"></div>
+    </div>
+
+    <script>
+        {% if mindmap_data %}
+        // Parse the mindmap data
+        const data = {{ mindmap_data | safe }};
+        console.log('Mindmap data:', data);  // Debug log
+
+        // Transform the data into a hierarchical structure D3 can understand
+        function transformData(data) {
+            // Create the root node
+            const root = {
+                name: data.central_topic,
+                children: []
+            };
+            
+            // Add branches as children
+            if (data.branches) {
+                root.children = data.branches.map(branch => ({
+                    name: branch.topic,
+                    children: branch.children ? branch.children.map(child => ({
+                        name: child.topic
+                    })) : []
+                }));
+            }
+            
+            return root;
+        }
+
+        // Set up dimensions
+        const width = document.querySelector('.mindmap-container').offsetWidth;
+        const height = document.querySelector('.mindmap-container').offsetHeight;
+        const margin = {top: 20, right: 120, bottom: 20, left: 120};
+
+        // Clear any existing SVG
+        d3.select('#mindmap').html('');
+
+        // Create the SVG container
+        const svg = d3.select('#mindmap')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Create the tree layout
+        const treeLayout = d3.tree()
+            .size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
+
+        // Transform the data and create the root hierarchy
+        const root = d3.hierarchy(transformData(data));
+
+        // Compute the tree layout
+        treeLayout(root);
+
+        // Create the links
+        svg.selectAll('.link')
+            .data(root.links())
+            .join('path')
+            .attr('class', 'link')
+            .attr('d', d3.linkHorizontal()
+                .x(d => d.y)
+                .y(d => d.x));
+
+        // Create the nodes
+        const nodes = svg.selectAll('.node')
+            .data(root.descendants())
+            .join('g')
+            .attr('class', d => `node ${d.depth === 0 ? 'central-node' : ''}`)
+            .attr('transform', d => `translate(${d.y},${d.x})`);
+
+        // Add circles to the nodes
+        nodes.append('circle')
+            .attr('r', d => d.depth === 0 ? 8 : 6);
+
+        // Add labels to the nodes
+        nodes.append('text')
+            .attr('dy', '.31em')
+            .attr('x', d => d.children ? -10 : 10)
+            .style('text-anchor', d => d.children ? 'end' : 'start')
+            .text(d => d.data.name)
+            .clone(true).lower()
+            .attr('stroke', 'white')
+            .attr('stroke-width', 3);
+
+        // Add zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 2])
+            .on('zoom', (event) => {
+                svg.attr('transform', event.transform);
+            });
+
+        d3.select('#mindmap svg')
+            .call(zoom)
+            .call(zoom.translateBy, margin.left, margin.top);
+        {% endif %}
+    </script>
+</body>
+</html>
