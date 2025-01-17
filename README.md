@@ -31,7 +31,7 @@ cd Mindmap_Summary
 
 2. Install the required dependencies:
 ```bash
-pip install flask google-generativeai python-dotenv PyPDF2 python-docx
+pip install -r requirements.txt
 ```
 
 3. Create a `.env` file in the project root directory with the following variables:
