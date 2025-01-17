@@ -2,6 +2,10 @@
 
 A Flask-based web application that converts text documents into interactive mindmaps using Google's Gemini AI. The application processes various document formats and generates visual hierarchical representations of their content.
 
+## Demo
+
+[Web demo](https://mindmap-summary.onrender.com)
+
 ## Features
 
 The Document to Mindmap Converter offers several powerful capabilities:
