@@ -42,7 +42,7 @@ model = genai.GenerativeModel("gemini-2.0-flash-exp",system_instruction=SYSTEM_P
 # Initialize the Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY") # Secret key for flash messages
-app.config["UPLOAD_PATH"] = "tmp" # Upload directory
+app.config["UPLOAD_PATH"] = "/tmp" # Upload directory
 app.config["MAX_CONTENT_LENGTH"] = 16* 1024 * 1024 # 16MB limit
 app.config["UPLOAD_EXTENSIONS"] = [".txt", ".docx", ".pdf"] # Allowed file extensions
 os.makedirs(app.config['UPLOAD_PATH'], exist_ok=True) # Create the upload directory if it doesn't exist
